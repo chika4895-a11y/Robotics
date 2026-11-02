@@ -1,0 +1,1343 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plant Disease Detection Explorer</title>
+
+<style>
+:root {
+    --primary: #16834a;
+    --dark: #123c2b;
+    --light: #eff8f1;
+    --background: #f4f7f5;
+    --white: #ffffff;
+    --text: #25372e;
+    --muted: #718078;
+    --orange: #e69a32;
+    --red: #dc5555;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: var(--background);
+    color: var(--text);
+    line-height: 1.6;
+}
+
+header {
+    background: linear-gradient(120deg, #123c2b, #16834a);
+    color: white;
+    padding: 30px 6%;
+}
+
+header h1 {
+    font-size: clamp(24px, 4vw, 36px);
+}
+
+header p {
+    color: #d7f5df;
+    margin-top: 8px;
+}
+
+.container {
+    width: 92%;
+    max-width: 1250px;
+    margin: 28px auto;
+}
+
+.section-title {
+    font-size: 21px;
+    margin-bottom: 16px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 18px;
+    margin-bottom: 28px;
+}
+
+.card {
+    background: white;
+    padding: 22px;
+    border-radius: 13px;
+    box-shadow: 0 3px 14px rgba(0,0,0,.05);
+    margin-bottom: 20px;
+}
+
+.stat {
+    font-size: 30px;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+.muted {
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.btn {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-secondary {
+    background: #e5eee8;
+    color: var(--dark);
+}
+
+.btn:hover {
+    opacity: .86;
+}
+
+button:focus-visible, select:focus-visible,
+input:focus-visible {
+    outline: 3px solid #86c9a0;
+    outline-offset: 2px;
+}
+
+select {
+    padding: 12px;
+    width: 100%;
+    border: 1px solid #cbd5d0;
+    border-radius: 7px;
+    background: white;
+    font-size: 15px;
+}
+
+.upload-area {
+    border: 2px dashed #8cbca0;
+    background: #f5fbf6;
+    border-radius: 12px;
+    padding: 30px 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.upload-area:hover {
+    background: #e8f6ec;
+}
+
+.upload-icon {
+    font-size: 45px;
+}
+
+.upload-area input {
+    display: none;
+}
+
+.image-preview {
+    width: 100%;
+    max-height: 310px;
+    object-fit: contain;
+    border-radius: 10px;
+    margin-top: 15px;
+    display: none;
+    background: #edf2ee;
+}
+
+.upload-hint {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 8px;
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.result-box {
+    display: none;
+    background: #eff8f1;
+    border-left: 5px solid var(--primary);
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.result-title {
+    font-size: 23px;
+    color: var(--dark);
+    margin: 8px 0;
+}
+
+.confidence {
+    font-size: 36px;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+.confidence-track {
+    height: 14px;
+    background: #dce9df;
+    border-radius: 20px;
+    overflow: hidden;
+    margin: 12px 0;
+}
+
+.confidence-fill {
+    height: 100%;
+    width: 0;
+    background: var(--primary);
+    border-radius: 20px;
+    transition: width .6s;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+    margin-top: 18px;
+}
+
+.info-box {
+    background: white;
+    padding: 15px;
+    border-radius: 9px;
+}
+
+.info-box h3 {
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: var(--dark);
+}
+
+.info-box ul {
+    padding-left: 20px;
+}
+
+.info-box li {
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+.status {
+    display: inline-block;
+    padding: 5px 10px;
+    background: #fff0d9;
+    color: #925600;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.disclaimer {
+    background: #fff6e5;
+    border: 1px solid #f3d8a5;
+    padding: 14px;
+    border-radius: 9px;
+    color: #79531c;
+    font-size: 13px;
+    margin-top: 15px;
+}
+
+.chart-container {
+    height: 260px;
+    width: 100%;
+    position: relative;
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.history-table th, .history-table td {
+    padding: 12px;
+    border-bottom: 1px solid #e6ece8;
+    text-align: left;
+}
+
+.history-table th {
+    background: #edf6ef;
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+.empty {
+    text-align: center;
+    padding: 25px;
+    color: var(--muted);
+}
+
+footer {
+    background: var(--dark);
+    color: white;
+    text-align: center;
+    padding: 25px;
+    margin-top: 40px;
+}
+
+@media(max-width:600px) {
+    header {
+        padding: 24px 5%;
+    }
+
+    .container {
+        width: 94%;
+    }
+
+    .card {
+        padding: 16px;
+    }
+
+    .history-table {
+        min-width: 520px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>🌱 Plant Disease Detection Explorer</h1>
+    <p>Interactive Agricultural Research and Disease Classification Dashboard</p>
+    <p>Upload • Explore • Classify • Understand</p>
+</header>
+
+<main class="container">
+
+<!-- DASHBOARD SUMMARY -->
+
+<h2 class="section-title">Research Dashboard Overview</h2>
+
+<div class="grid">
+
+    <div class="card">
+        <p class="muted">Images Analysed</p>
+        <div class="stat" id="totalImages">0</div>
+        <p>Uploaded leaf images</p>
+    </div>
+
+    <div class="card">
+        <p class="muted">Healthy Predictions</p>
+        <div class="stat" id="healthyCount">0</div>
+        <p>Simulated healthy results</p>
+    </div>
+
+    <div class="card">
+        <p class="muted">Disease Predictions</p>
+        <div class="stat" id="diseaseCount">0</div>
+        <p>Simulated disease results</p>
+    </div>
+
+    <div class="card">
+        <p class="muted">Average Confidence</p>
+        <div class="stat" id="averageConfidence">0%</div>
+        <p>Across simulated predictions</p>
+    </div>
+
+</div>
+
+<!-- IMAGE UPLOAD -->
+
+<h2 class="section-title">📷 Upload Plant Leaf Image</h2>
+
+<div class="card">
+
+    <div class="form-group">
+        <label for="cropSelect">Select Crop Type</label>
+
+        <select id="cropSelect">
+            <option value="Potato">Potato</option>
+            <option value="Apple">Apple</option>
+            <option value="Peach">Peach</option>
+        </select>
+    </div>
+
+    <div class="upload-area" id="uploadArea">
+
+        <div class="upload-icon">🍃</div>
+
+        <h3>Upload Leaf Image</h3>
+
+        <p>Click here or drag and drop a plant leaf image</p>
+
+        <p class="upload-hint">
+            Supported formats: JPG, JPEG, PNG, WEBP
+        </p>
+
+        <input type="file"
+               id="imageInput"
+               accept="image/jpeg,image/png,image/webp">
+
+    </div>
+
+    <img id="imagePreview"
+         class="image-preview"
+         alt="Uploaded plant leaf preview">
+
+    <p id="fileName" class="muted"
+       style="margin-top:10px"></p>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px">
+
+        <button class="btn btn-primary"
+                id="analyseBtn"
+                onclick="analyseImage()"
+                disabled>
+            🔍 Analyse Leaf Image
+        </button>
+
+        <button class="btn btn-secondary"
+                onclick="resetExplorer()">
+            ↻ Reset
+        </button>
+
+    </div>
+
+    <div class="disclaimer">
+        <strong>Research demonstration:</strong>
+        This webpage uses simulated sample predictions.
+        It does not contain a trained machine learning model
+        and does not actually detect diseases from uploaded images.
+        The displayed result is randomly selected from the
+        selected crop's sample disease categories.
+    </div>
+
+</div>
+
+<!-- CLASSIFICATION RESULT -->
+
+<h2 class="section-title">🔬 Classification Results</h2>
+
+<div class="card">
+
+    <div id="noResult" class="empty">
+        Upload a leaf image and click Analyse Leaf Image
+        to view a simulated classification result.
+    </div>
+
+    <div id="resultBox" class="result-box" aria-live="polite">
+
+        <span class="status" id="predictionStatus">
+            SIMULATED PREDICTION
+        </span>
+
+        <p class="muted" style="margin-top:12px">
+            Selected Crop
+        </p>
+
+        <h2 id="resultCrop"></h2>
+
+        <p class="muted">Predicted Class</p>
+
+        <div class="result-title" id="resultDisease"></div>
+
+        <p class="muted">Simulated Confidence Score</p>
+
+        <div class="confidence" id="confidenceValue">0%</div>
+
+        <div class="confidence-track">
+            <div class="confidence-fill" id="confidenceBar"></div>
+        </div>
+
+        <p id="resultSummary"></p>
+
+        <div class="info-grid">
+
+            <div class="info-box">
+                <h3>📖 Disease Description</h3>
+                <p id="diseaseDescription"></p>
+            </div>
+
+            <div class="info-box">
+                <h3>🛡️ Prevention Recommendations</h3>
+                <ul id="preventionList"></ul>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- CHARTS -->
+
+<h2 class="section-title">📊 Research Analytics</h2>
+
+<div class="grid">
+
+    <div class="card">
+        <h3 style="margin-bottom:15px">
+            Prediction Distribution
+        </h3>
+
+        <div class="chart-container">
+            <canvas id="distributionChart"
+                    role="img"
+                    aria-label="Chart showing healthy and disease prediction counts">
+                Prediction distribution chart.
+            </canvas>
+        </div>
+
+    </div>
+
+    <div class="card">
+        <h3 style="margin-bottom:15px">
+            Crop-wise Image Analysis
+        </h3>
+
+        <div class="chart-container">
+            <canvas id="cropChart"
+                    role="img"
+                    aria-label="Chart showing analysed images for each crop">
+                Crop analysis chart.
+            </canvas>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ANALYSIS HISTORY -->
+
+<h2 class="section-title">📋 Analysis History</h2>
+
+<div class="card">
+
+    <div class="table-wrap">
+
+        <table class="history-table">
+
+            <thead>
+                <tr>
+                    <th>Sl. No.</th>
+                    <th>Crop</th>
+                    <th>Prediction</th>
+                    <th>Confidence</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+
+            <tbody id="historyBody">
+                <tr>
+                    <td colspan="5" class="empty">
+                        No images analysed yet.
+                    </td>
+                </tr>
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+</main>
+
+<footer>
+    <h3>🌿 Plant Disease Detection Explorer</h3>
+    <p>Agricultural Research | Artificial Intelligence Demonstration</p>
+    <p style="font-size:12px;color:#c8ded0;margin-top:8px">
+        Educational demonstration using simulated predictions only.
+    </p>
+</footer>
+
+<script>
+
+// ===========================================
+// 1. SAMPLE DISEASE DATABASE
+// ===========================================
+
+const diseaseDatabase = {
+
+    Potato: [
+
+        {
+            name: "Healthy",
+            type: "Healthy",
+            confidence: 96,
+            description:
+                "The sample category represents a potato leaf without visible disease symptoms.",
+            prevention: [
+                "Use healthy and certified seed tubers.",
+                "Maintain proper field sanitation.",
+                "Monitor crops regularly.",
+                "Follow balanced nutrient management."
+            ]
+        },
+
+        {
+            name: "Early Blight",
+            type: "Disease",
+            confidence: 93,
+            description:
+                "Early blight is commonly associated with Alternaria solani. Symptoms include brown lesions, often with concentric rings, on leaves.",
+            prevention: [
+                "Use crop rotation practices.",
+                "Remove infected plant debris.",
+                "Avoid prolonged leaf wetness.",
+                "Use appropriate disease management practices."
+            ]
+        },
+
+        {
+            name: "Late Blight",
+            type: "Disease",
+            confidence: 95,
+            description:
+                "Late blight is caused by Phytophthora infestans. It can produce water-soaked lesions that develop into dark brown or black areas.",
+            prevention: [
+                "Use disease-free planting material.",
+                "Monitor crops during favourable weather.",
+                "Remove infected plant material safely.",
+                "Apply locally recommended management measures."
+            ]
+        }
+
+    ],
+
+    Apple: [
+
+        {
+            name: "Healthy",
+            type: "Healthy",
+            confidence: 97,
+            description:
+                "The sample category represents an apple leaf without visible disease symptoms.",
+            prevention: [
+                "Maintain proper orchard sanitation.",
+                "Inspect leaves regularly.",
+                "Provide balanced nutrition.",
+                "Maintain good orchard airflow."
+            ]
+        },
+
+        {
+            name: "Apple Scab",
+            type: "Disease",
+            confidence: 94,
+            description:
+                "Apple scab is caused by Venturia inaequalis. It produces olive-green to dark lesions on leaves and fruits.",
+            prevention: [
+                "Remove fallen infected leaves.",
+                "Prune trees to improve airflow.",
+                "Use resistant varieties where suitable.",
+                "Follow locally recommended disease management."
+            ]
+        },
+
+        {
+            name: "Black Rot",
+            type: "Disease",
+            confidence: 92,
+            description:
+                "Black rot is caused by Botryosphaeria obtusa and can cause leaf spots, fruit rot and cankers.",
+            prevention: [
+                "Remove infected branches and fruit.",
+                "Maintain orchard hygiene.",
+                "Avoid unnecessary plant injuries.",
+                "Monitor trees for symptoms."
+            ]
+        },
+
+        {
+            name: "Cedar Apple Rust",
+            type: "Disease",
+            confidence: 91,
+            description:
+                "Cedar apple rust is caused by Gymnosporangium species and can produce yellow-orange spots on apple leaves.",
+            prevention: [
+                "Select suitable resistant varieties.",
+                "Monitor nearby alternate hosts.",
+                "Remove infected plant material where appropriate.",
+                "Follow regional orchard management guidance."
+            ]
+        }
+
+    ],
+
+    Peach: [
+
+        {
+            name: "Healthy",
+            type: "Healthy",
+            confidence: 96,
+            description:
+                "The sample category represents a peach leaf without visible disease symptoms.",
+            prevention: [
+                "Maintain orchard sanitation.",
+                "Monitor leaf health.",
+                "Provide balanced nutrients.",
+                "Ensure proper irrigation."
+            ]
+        },
+
+        {
+            name: "Bacterial Spot",
+            type: "Disease",
+            confidence: 93,
+            description:
+                "Bacterial spot is caused by Xanthomonas species. It may produce small dark lesions on leaves and fruit.",
+            prevention: [
+                "Use healthy planting material.",
+                "Avoid overhead irrigation when possible.",
+                "Improve orchard airflow.",
+                "Follow local disease management guidance."
+            ]
+        },
+
+        {
+            name: "Leaf Curl",
+            type: "Disease",
+            confidence: 95,
+            description:
+                "Peach leaf curl is caused by Taphrina deformans. Leaves may become distorted, thickened and reddish.",
+            prevention: [
+                "Choose resistant varieties when available.",
+                "Monitor trees during dormant periods.",
+                "Maintain orchard sanitation.",
+                "Use locally recommended preventive treatments."
+            ]
+        }
+
+    ]
+
+};
+
+// ===========================================
+// 2. APPLICATION STATE
+// ===========================================
+
+let selectedFile = null;
+let previewURL = null;
+let history = [];
+
+const imageInput = document.getElementById("imageInput");
+const uploadArea = document.getElementById("uploadArea");
+const imagePreview = document.getElementById("imagePreview");
+const analyseBtn = document.getElementById("analyseBtn");
+
+// ===========================================
+// 3. IMAGE UPLOAD
+// ===========================================
+
+uploadArea.addEventListener("click", function() {
+    imageInput.click();
+});
+
+imageInput.addEventListener("change", function(event) {
+
+    const file = event.target.files[0];
+
+    if (file) {
+        loadImage(file);
+    }
+
+});
+
+function loadImage(file) {
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+        alert("Please upload a JPG, PNG or WEBP image.");
+        imageInput.value = "";
+        return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+        alert("Image size must be below 10 MB.");
+        imageInput.value = "";
+        return;
+    }
+
+    selectedFile = file;
+
+    if (previewURL) {
+        URL.revokeObjectURL(previewURL);
+    }
+
+    previewURL = URL.createObjectURL(file);
+
+    imagePreview.src = previewURL;
+    imagePreview.style.display = "block";
+
+    document.getElementById("fileName").textContent =
+        "Selected file: " + file.name;
+
+    analyseBtn.disabled = false;
+
+}
+
+uploadArea.addEventListener("dragover", function(event) {
+
+    event.preventDefault();
+
+    uploadArea.style.background = "#e0f2e5";
+
+});
+
+uploadArea.addEventListener("dragleave", function() {
+
+    uploadArea.style.background = "#f5fbf6";
+
+});
+
+uploadArea.addEventListener("drop", function(event) {
+
+    event.preventDefault();
+
+    uploadArea.style.background = "#f5fbf6";
+
+    const file = event.dataTransfer.files[0];
+
+    if (file) {
+
+        loadImage(file);
+
+        // Keep file input synchronized where possible.
+        try {
+            const transfer = new DataTransfer();
+            transfer.items.add(file);
+            imageInput.files = transfer.files;
+        } catch (error) {
+            // Preview and analysis still work with selectedFile.
+        }
+
+    }
+
+});
+
+// ===========================================
+// 4. SIMULATED DISEASE CLASSIFICATION
+// ===========================================
+
+function analyseImage() {
+
+    if (!selectedFile) {
+        alert("Please upload a plant leaf image first.");
+        return;
+    }
+
+    const crop = document.getElementById("cropSelect").value;
+
+    const options = diseaseDatabase[crop];
+
+    // Random sample category.
+    const randomIndex = Math.floor(
+        Math.random() * options.length
+    );
+
+    const result = options[randomIndex];
+
+    displayResult(crop, result);
+
+    // Add to analysis history.
+    history.push({
+
+        crop: crop,
+
+        disease: result.name,
+
+        confidence: result.confidence,
+
+        type: result.type
+
+    });
+
+    updateDashboard();
+
+}
+
+// ===========================================
+// 5. DISPLAY CLASSIFICATION RESULT
+// ===========================================
+
+function displayResult(crop, result) {
+
+    document.getElementById("noResult").style.display = "none";
+
+    document.getElementById("resultBox").style.display = "block";
+
+    document.getElementById("resultCrop").textContent = crop;
+
+    document.getElementById("resultDisease").textContent =
+        result.name;
+
+    document.getElementById("confidenceValue").textContent =
+        result.confidence + "%";
+
+    document.getElementById("confidenceBar").style.width =
+        result.confidence + "%";
+
+    document.getElementById("resultSummary").textContent =
+        "Sample prediction category: " + result.type +
+        ". This result is generated using predefined demonstration data.";
+
+    document.getElementById("predictionStatus").textContent =
+        "SIMULATED RESULT";
+
+    document.getElementById("diseaseDescription").textContent =
+        result.description;
+
+    const preventionList =
+        document.getElementById("preventionList");
+
+    preventionList.innerHTML = "";
+
+    result.prevention.forEach(item => {
+
+        const li = document.createElement("li");
+
+        li.textContent = item;
+
+        preventionList.appendChild(li);
+
+    });
+
+    document.getElementById("resultBox").scrollIntoView({
+        behavior: "smooth",
+        block: "nearest"
+    });
+
+}
+
+// ===========================================
+// 6. DASHBOARD STATISTICS
+// ===========================================
+
+function updateDashboard() {
+
+    const total = history.length;
+
+    const healthy = history.filter(
+        item => item.type === "Healthy"
+    ).length;
+
+    const disease = history.filter(
+        item => item.type === "Disease"
+    ).length;
+
+    let average = 0;
+
+    if (total > 0) {
+
+        average = history.reduce(
+            (sum, item) => sum + item.confidence,
+            0
+        ) / total;
+
+    }
+
+    document.getElementById("totalImages").textContent =
+        total;
+
+    document.getElementById("healthyCount").textContent =
+        healthy;
+
+    document.getElementById("diseaseCount").textContent =
+        disease;
+
+    document.getElementById("averageConfidence").textContent =
+        average.toFixed(1) + "%";
+
+    updateHistory();
+
+    drawDistributionChart();
+
+    drawCropChart();
+
+}
+
+// ===========================================
+// 7. ANALYSIS HISTORY TABLE
+// ===========================================
+
+function updateHistory() {
+
+    const tbody = document.getElementById("historyBody");
+
+    tbody.innerHTML = "";
+
+    if (history.length === 0) {
+
+        const row = tbody.insertRow();
+
+        const cell = row.insertCell();
+
+        cell.colSpan = 5;
+
+        cell.className = "empty";
+
+        cell.textContent = "No images analysed yet.";
+
+        return;
+
+    }
+
+    history.forEach((item, index) => {
+
+        const row = tbody.insertRow();
+
+        const values = [
+
+            index + 1,
+
+            item.crop,
+
+            item.disease,
+
+            item.confidence + "%",
+
+            item.type
+
+        ];
+
+        values.forEach(value => {
+
+            const cell = row.insertCell();
+
+            cell.textContent = value;
+
+        });
+
+    });
+
+}
+
+// ===========================================
+// 8. CHART DRAWING FUNCTIONS
+// NO EXTERNAL LIBRARIES
+// ===========================================
+
+function prepareCanvas(id) {
+
+    const canvas = document.getElementById(id);
+
+    const rect = canvas.getBoundingClientRect();
+
+    const ratio = window.devicePixelRatio || 1;
+
+    canvas.width = rect.width * ratio;
+
+    canvas.height = rect.height * ratio;
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+    ctx.clearRect(0, 0, rect.width, rect.height);
+
+    return {
+
+        ctx: ctx,
+
+        width: rect.width,
+
+        height: rect.height
+
+    };
+
+}
+
+// ===========================================
+// 9. HEALTHY VS DISEASE CHART
+// ===========================================
+
+function drawDistributionChart() {
+
+    const chart = prepareCanvas("distributionChart");
+
+    const ctx = chart.ctx;
+
+    const width = chart.width;
+
+    const height = chart.height;
+
+    const healthy = history.filter(
+        item => item.type === "Healthy"
+    ).length;
+
+    const disease = history.filter(
+        item => item.type === "Disease"
+    ).length;
+
+    const total = healthy + disease;
+
+    const centerX = width / 2;
+
+    const centerY = height / 2 - 10;
+
+    const radius = Math.min(width, height) * 0.29;
+
+    ctx.beginPath();
+
+    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+
+    ctx.strokeStyle = "#e4eee7";
+
+    ctx.lineWidth = 25;
+
+    ctx.stroke();
+
+    if (total > 0) {
+
+        const healthyAngle =
+            (healthy / total) * Math.PI * 2;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            centerX,
+            centerY,
+            radius,
+            -Math.PI / 2,
+            -Math.PI / 2 + healthyAngle
+        );
+
+        ctx.strokeStyle = "#16a34a";
+
+        ctx.lineWidth = 25;
+
+        ctx.lineCap = "butt";
+
+        ctx.stroke();
+
+        ctx.beginPath();
+
+        ctx.arc(
+            centerX,
+            centerY,
+            radius,
+            -Math.PI / 2 + healthyAngle,
+            -Math.PI / 2 + Math.PI * 2
+        );
+
+        ctx.strokeStyle = "#e69a32";
+
+        ctx.lineWidth = 25;
+
+        ctx.stroke();
+
+    }
+
+    ctx.textAlign = "center";
+
+    ctx.fillStyle = "#123c2b";
+
+    ctx.font = "bold 24px Arial";
+
+    ctx.fillText(total, centerX, centerY + 6);
+
+    ctx.font = "12px Arial";
+
+    ctx.fillStyle = "#718078";
+
+    ctx.fillText("Analysed", centerX, centerY + 25);
+
+    // Legend
+
+    ctx.textAlign = "center";
+
+    ctx.font = "12px Arial";
+
+    ctx.fillStyle = "#16a34a";
+
+    ctx.fillText("Healthy: " + healthy, width * .28, height - 12);
+
+    ctx.fillStyle = "#e69a32";
+
+    ctx.fillText("Disease: " + disease, width * .72, height - 12);
+
+}
+
+// ===========================================
+// 10. CROP-WISE BAR CHART
+// ===========================================
+
+function drawCropChart() {
+
+    const chart = prepareCanvas("cropChart");
+
+    const ctx = chart.ctx;
+
+    const width = chart.width;
+
+    const height = chart.height;
+
+    const crops = ["Potato", "Apple", "Peach"];
+
+    const counts = crops.map(crop =>
+        history.filter(item => item.crop === crop).length
+    );
+
+    const max = Math.max(1, ...counts);
+
+    const left = 55;
+
+    const right = 15;
+
+    const top = 25;
+
+    const bottom = 35;
+
+    const chartHeight = height - top - bottom;
+
+    const chartWidth = width - left - right;
+
+    ctx.font = "12px Arial";
+
+    ctx.textAlign = "right";
+
+    ctx.fillStyle = "#718078";
+
+    for (let i = 0; i <= 4; i++) {
+
+        const value = Math.ceil(max * i / 4);
+
+        const y = top + chartHeight -
+            (i / 4) * chartHeight;
+
+        ctx.fillText(value, left - 10, y + 4);
+
+        ctx.beginPath();
+
+        ctx.strokeStyle = "#e6eee8";
+
+        ctx.moveTo(left, y);
+
+        ctx.lineTo(width - right, y);
+
+        ctx.stroke();
+
+    }
+
+    const slot = chartWidth / 3;
+
+    const barWidth = Math.min(48, slot * .5);
+
+    crops.forEach((crop, index) => {
+
+        const barHeight =
+            (counts[index] / max) * chartHeight;
+
+        const x = left + index * slot +
+            (slot - barWidth) / 2;
+
+        const y = top + chartHeight - barHeight;
+
+        ctx.fillStyle = "#16834a";
+
+        ctx.fillRect(
+            x,
+            y,
+            barWidth,
+            Math.max(2, barHeight)
+        );
+
+        ctx.fillStyle = "#123c2b";
+
+        ctx.textAlign = "center";
+
+        ctx.font = "bold 12px Arial";
+
+        ctx.fillText(
+            counts[index],
+            x + barWidth / 2,
+            y - 7
+        );
+
+        ctx.font = "12px Arial";
+
+        ctx.fillStyle = "#718078";
+
+        ctx.fillText(
+            crop,
+            x + barWidth / 2,
+            height - 10
+        );
+
+    });
+
+}
+
+// ===========================================
+// 11. RESET EXPLORER
+// ===========================================
+
+function resetExplorer() {
+
+    selectedFile = null;
+
+    history = [];
+
+    imageInput.value = "";
+
+    if (previewURL) {
+
+        URL.revokeObjectURL(previewURL);
+
+        previewURL = null;
+
+    }
+
+    imagePreview.src = "";
+
+    imagePreview.style.display = "none";
+
+    document.getElementById("fileName").textContent = "";
+
+    document.getElementById("cropSelect").value = "Potato";
+
+    analyseBtn.disabled = true;
+
+    document.getElementById("resultBox").style.display = "none";
+
+    document.getElementById("noResult").style.display = "block";
+
+    updateDashboard();
+
+}
+
+// ===========================================
+// 12. INITIALIZE DASHBOARD
+// ===========================================
+
+window.addEventListener("resize", function() {
+
+    drawDistributionChart();
+
+    drawCropChart();
+
+});
+
+updateDashboard();
+
+</script>
+
+</body>
+</html>
